@@ -5,7 +5,7 @@ from keyfile import ytkey
 yturl='https://www.googleapis.com/youtube/v3/search'
 query='valorant'
 
-time=datetime.now(timezone.utc).astimezone() - timedelta(hours=6)  
+time=datetime.now(timezone.utc).astimezone() - timedelta(hours=6)  #get current time and subtract 6 hours from it
 mytime = time.isoformat() # get and convert current time to RFC 3339
 
 class key:
@@ -13,16 +13,21 @@ class key:
     def __init__(self,keyid):
         self.keyid=keyid
 
-def ytreq(args):
+def ytreq(args): #request youtube for vidinfo
     output=requests.get(yturl, params={'part': 'snippet','q':query,"key": ytkey,'type':'video','order':'date','publishedAfter':mytime})
     output=json.loads(output.content)
     writedb(output)
     print("request made")
 
-def searchdb():
-    pass
+def searchdb(): #get data from db
+    con = sqlite3.connect('static/YTdatabase.db')
+    cur = con.cursor()
+    cur.execute('SELECT * FROM vidData order by published DESC')
+    rows = cur.fetchall()
+    con.close()
+    return rows
 
-def writedb(output):
+def writedb(output): #write data to db
     con = sqlite3.connect('static/YTdatabase.db')
     cur = con.cursor()
     for vid in output['items']:
