@@ -1,23 +1,33 @@
 import sqlite3,requests,json
 from datetime import datetime, timedelta, timezone
-from keyfile import ytkey
-
-yturl='https://www.googleapis.com/youtube/v3/search'
-query='valorant'
+from keyfile import ytkeylist
 
 time=datetime.now(timezone.utc).astimezone() - timedelta(hours=6)  #get current time and subtract 6 hours from it
 mytime = time.isoformat() # get and convert current time to RFC 3339
 
-class key:
-    keyworks=True
-    def __init__(self,keyid):
-        self.keyid=keyid
+yturl='https://www.googleapis.com/youtube/v3/search'
+query='valorant'
+ytkeyindex=0
 
-def ytreq(args): #request youtube for vidinfo
-    output=requests.get(yturl, params={'part': 'snippet','q':query,"key": ytkey,'type':'video','order':'date','publishedAfter':mytime})
-    output=json.loads(output.content)
-    writedb(output)
-    print("request made")
+
+def rotateytkey():
+    global ytkeyindex   #allow global access inside function
+    if(ytkeyindex==len(ytkeylist)-1):
+        ytkeyindex=0
+    elif(ytkeyindex<len(ytkeylist)-1):
+        ytkeyindex=ytkeyindex+1
+
+
+def ytreq(): #request youtube for vidinfo
+    output=requests.get(yturl, params={'part': 'snippet','q':query,"key": ytkeylist[ytkeyindex],'type':'video','order':'date','publishedAfter':mytime})     #generate a request
+    try:    #check if request is 403                     
+        int(output.content['error']['code'])==403
+        rotateytkey()   #switch keys
+        ytreq()     #recall function
+    except: #if not 403
+        output=json.loads(output.content)   #load content of request output
+        writedb(output)     
+        print("request made")   #log on server
 
 def searchdb(): #get data from db
     con = sqlite3.connect('static/YTdatabase.db')

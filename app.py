@@ -1,13 +1,9 @@
 from flask import Flask, render_template, make_response, request ,jsonify
 from flask_apscheduler import APScheduler
-from functions import key , ytreq, searchdb
+from functions import ytreq, searchdb
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
-def home():
-    items =None
-    return render_template("dash.html",items=items)
 
 @app.route('/data', methods=['GET'])    #set api endpoint
 def dataout():
@@ -41,7 +37,7 @@ def dataout():
 
 
 scheduler = APScheduler()
-scheduler.add_job(func=ytreq, args=['args'], trigger='interval', id='job', seconds=100)
+scheduler.add_job(func=ytreq, trigger='interval', id='job', seconds=100)
 scheduler.start()
 
 if __name__ == '__main__':
