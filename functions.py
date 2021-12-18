@@ -12,3 +12,6 @@ def makeytrequest():
 
 def searchdb():
     pass
+
+def writedb(args):
+    print(args)
